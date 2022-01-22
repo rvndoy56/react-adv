@@ -1,38 +1,42 @@
-
+import { Suspense } from 'react';
 
 import { BrowserRouter, Navigate, NavLink, Route, Routes } from 'react-router-dom';
-import { LazyPage1, LazyPage2, LazyPage3 } from '../01-lazyload/pages';
+import {routes} from './routes';
 
 import logo from '../logo.svg';
 
 
 export const Navigation = () => {
+    //Suspense permite mostrar un componente mientras se carga el otro
   return (
-    <BrowserRouter>
-        <div className="main-layout">
-            <nav>
-                <img src={logo} alt="React logo" />
-                <ul>
-                    <li>
-                        <NavLink to="/lazy1" className={ ({isActive})=> isActive ? 'nav-active' : '' }>Lazy1</NavLink>
-                    </li>
-                    <li>
-                        <NavLink to="/lazy2" className={ ({isActive})=> isActive ? 'nav-active' : '' }>Lazy2</NavLink>
-                    </li>
-                    <li>
-                        <NavLink to="/lazy3" className={ ({isActive})=> isActive ? 'nav-active' : '' }>Lazy3</NavLink>
-                    </li>
-                </ul>
-            </nav>
-            <Routes>
-                <Route path="lazy1" element={<LazyPage1 />} />
-                <Route path="lazy2" element={<LazyPage2 />} />
-                <Route path="lazy3"  element={<LazyPage3 />} />
-                {/* Esto se usa cuando se accede a una ruta desconocida */}
-                <Route path="/*" element={<Navigate to="/lazy1" replace />} />
-            </Routes>
-        </div>
-    </BrowserRouter>
+    <Suspense fallback={<span>Loading...</span>} >
+        <BrowserRouter>
+            <div className="main-layout">
+                <nav>
+                    <img src={logo} alt="React logo" />
+                    <ul>
+                        {/* TODO: Crear navlink dinamicos */}
+                            {routes.map(({to,name}) => (
+                                <li key={to}>
+                                    <NavLink to={to} className={ ({isActive})=> isActive ? 'nav-active' : '' }>{name}</NavLink>
+                                </li>
+                            ))
+                        }
+                    </ul>
+                </nav>
+                <Routes>
+                    {
+                        routes.map(({to, path, Component}) => (
+                            <Route key={to} path={path} element={<Component />} />
+                        ))
+                    }
+
+                    {/* Esto se usa cuando se accede a una ruta desconocida */}
+                    <Route path="/*" element={<Navigate to={routes[0].to} replace />} />
+                </Routes>
+            </div>
+        </BrowserRouter>
+    </Suspense>
   );
 }
 
